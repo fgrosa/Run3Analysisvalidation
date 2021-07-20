@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Copyright CERN and copyright holders of ALICE O2. This software is
 distributed under the terms of the GNU General Public License v3 (GPL
 Version 3), copied verbatim in the file "COPYING".
@@ -14,14 +14,15 @@ or submit itself to any jurisdiction.
 file: HfAnalysisUtils.py
 brief: script with miscellanea utils methods for the HF analyses
 author: Fabrizio Grosa <fabrizio.grosa@cern.ch>, CERN
-'''
+"""
 
 import numpy as np
 
 
-def ComputeCrossSection(rawY, uncRawY, frac, effTimesAcc,
-                        deltaPt, deltaY, sigmaMB, nEv, BR, methodFrac='Nb'):
-    '''
+def ComputeCrossSection(
+    rawY, uncRawY, frac, effTimesAcc, deltaPt, deltaY, sigmaMB, nEv, BR, methodFrac="Nb"
+):
+    """
     Method to compute cross section and its statistical uncertainty
     Only the statistical uncertainty on the raw yield and prompt (non-prompt)
     fraction are considered (the others are systematics)
@@ -43,10 +44,12 @@ def ComputeCrossSection(rawY, uncRawY, frac, effTimesAcc,
     ----------
     - crossSection: cross section
     - crossSecUnc: cross-section statistical uncertainty
-    '''
+    """
 
-    crossSection = rawY * frac * sigmaMB / (2 * deltaPt * deltaY * effTimesAcc * nEv * BR)
-    if methodFrac == 'Nb':
+    crossSection = (
+        rawY * frac * sigmaMB / (2 * deltaPt * deltaY * effTimesAcc * nEv * BR)
+    )
+    if methodFrac == "Nb":
         crossSecUnc = uncRawY / (rawY * frac) * crossSection
     else:
         crossSecUnc = uncRawY / rawY * crossSection
@@ -55,8 +58,10 @@ def ComputeCrossSection(rawY, uncRawY, frac, effTimesAcc,
 
 
 # pylint: disable=too-many-branches
-def ComputeFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1., raaFD=1.):
-    '''
+def ComputeFractionFc(
+    accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPrompt=1.0, raaFD=1.0
+):
+    """
     Method to get fraction of prompt / FD fraction with fc method
 
     Parameters
@@ -72,7 +77,7 @@ def ComputeFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPro
     ----------
     - fracPrompt: list of fraction of prompt D (central, min, max)
     - fracFD: list of fraction of non-prompt D (central, min, max)
-    '''
+    """
 
     if not isinstance(crossSecPrompt, list) and isinstance(crossSecPrompt, float):
         crossSecPrompt = [crossSecPrompt]
@@ -85,14 +90,14 @@ def ComputeFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPro
 
     fracPrompt, fracFD = [], []
     if accEffPrompt == 0:
-        fracFDCent = 1.
-        fracPromptCent = 0.
+        fracFDCent = 1.0
+        fracPromptCent = 0.0
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
         return fracPrompt, fracFD
     if accEffFD == 0:
-        fracFDCent = 0.
-        fracPromptCent = 1.
+        fracFDCent = 0.0
+        fracPromptCent = 1.0
         fracPrompt = [fracPromptCent, fracPromptCent, fracPromptCent]
         fracFD = [fracFDCent, fracFDCent, fracFDCent]
         return fracPrompt, fracFD
@@ -100,11 +105,19 @@ def ComputeFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPro
     for iSigma, (sigmaP, sigmaF) in enumerate(zip(crossSecPrompt, crossSecFD)):
         for iRaa, (raaP, raaF) in enumerate(zip(raaPrompt, raaFD)):
             if iSigma == 0 and iRaa == 0:
-                fracPromptCent = 1. / (1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
-                fracFDCent = 1. / (1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
+                fracPromptCent = 1.0 / (
+                    1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP
+                )
+                fracFDCent = 1.0 / (
+                    1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF
+                )
             else:
-                fracPrompt.append(1. / (1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP))
-                fracFD.append(1. / (1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF))
+                fracPrompt.append(
+                    1.0 / (1 + accEffFD / accEffPrompt * sigmaF / sigmaP * raaF / raaP)
+                )
+                fracFD.append(
+                    1.0 / (1 + accEffPrompt / accEffFD * sigmaP / sigmaF * raaP / raaF)
+                )
 
     if fracPrompt and fracFD:
         fracPrompt.sort()
@@ -119,9 +132,20 @@ def ComputeFractionFc(accEffPrompt, accEffFD, crossSecPrompt, crossSecFD, raaPro
 
 
 # pylint: disable=too-many-arguments, too-many-branches
-def ComputeFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, deltaY, BR, nEvents,
-                      sigmaMB, raaRatio=1., taa=1.):
-    '''
+def ComputeFractionNb(
+    rawYield,
+    accEffSame,
+    accEffOther,
+    crossSec,
+    deltaPt,
+    deltaY,
+    BR,
+    nEvents,
+    sigmaMB,
+    raaRatio=1.0,
+    taa=1.0,
+):
+    """
     Method to get fraction of prompt / FD fraction with Nb method
 
     Parameters
@@ -142,7 +166,7 @@ def ComputeFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, delt
     Returns
     ----------
     - frac: list of fraction of prompt (non-prompt) D (central, min, max)
-    '''
+    """
 
     if not isinstance(crossSec, list) and isinstance(crossSec, float):
         crossSec = [crossSec]
@@ -153,30 +177,84 @@ def ComputeFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, delt
     frac = []
     for iSigma, sigma in enumerate(crossSec):
         for iRaaRatio, raaRat in enumerate(raaRatio):
-            raaOther = 1.
+            raaOther = 1.0
             if iSigma == 0 and iRaaRatio == 0:
-                if raaRat == 1. and taa == 1.:  # pp
-                    fracCent = 1 - sigma * deltaPt * deltaY * accEffOther * BR * nEvents * 2 / rawYield / sigmaMB
+                if raaRat == 1.0 and taa == 1.0:  # pp
+                    fracCent = (
+                        1
+                        - sigma
+                        * deltaPt
+                        * deltaY
+                        * accEffOther
+                        * BR
+                        * nEvents
+                        * 2
+                        / rawYield
+                        / sigmaMB
+                    )
                 else:  # p-Pb or Pb-Pb: iterative evaluation of Raa needed
-                    deltaRaa = 1.
-                    while deltaRaa > 1.e-3:
-                        rawFD = taa * raaRat * raaOther * sigma * deltaPt * deltaY * accEffOther * BR * nEvents * 2
+                    deltaRaa = 1.0
+                    while deltaRaa > 1.0e-3:
+                        rawFD = (
+                            taa
+                            * raaRat
+                            * raaOther
+                            * sigma
+                            * deltaPt
+                            * deltaY
+                            * accEffOther
+                            * BR
+                            * nEvents
+                            * 2
+                        )
                         fracCent = 1 - rawFD / rawYield
                         raaOtherOld = raaOther
-                        raaOther = fracCent * rawYield * sigmaMB / (2 * accEffSame * deltaPt * deltaY * BR * nEvents)
-                        deltaRaa = abs((raaOther-raaOtherOld) / raaOther)
+                        raaOther = (
+                            fracCent
+                            * rawYield
+                            * sigmaMB
+                            / (2 * accEffSame * deltaPt * deltaY * BR * nEvents)
+                        )
+                        deltaRaa = abs((raaOther - raaOtherOld) / raaOther)
             else:
-                if raaRat == 1. and taa == 1.:  # pp
-                    frac.append(1 - sigma * deltaPt * deltaY * accEffOther * BR * nEvents * 2 / rawYield / sigmaMB)
+                if raaRat == 1.0 and taa == 1.0:  # pp
+                    frac.append(
+                        1
+                        - sigma
+                        * deltaPt
+                        * deltaY
+                        * accEffOther
+                        * BR
+                        * nEvents
+                        * 2
+                        / rawYield
+                        / sigmaMB
+                    )
                 else:  # p-Pb or Pb-Pb: iterative evaluation of Raa needed
-                    deltaRaa = 1.
-                    fracTmp = 1.
-                    while deltaRaa > 1.e-3:
-                        rawFD = taa * raaRat * raaOther * sigma * deltaPt * deltaY * accEffOther * BR * nEvents * 2
+                    deltaRaa = 1.0
+                    fracTmp = 1.0
+                    while deltaRaa > 1.0e-3:
+                        rawFD = (
+                            taa
+                            * raaRat
+                            * raaOther
+                            * sigma
+                            * deltaPt
+                            * deltaY
+                            * accEffOther
+                            * BR
+                            * nEvents
+                            * 2
+                        )
                         fracTmp = 1 - rawFD / rawYield
                         raaOtherOld = raaOther
-                        raaOther = fracTmp * rawYield * sigmaMB / (2 * accEffSame * deltaPt * deltaY * BR * nEvents)
-                        deltaRaa = abs((raaOther-raaOtherOld) / raaOther)
+                        raaOther = (
+                            fracTmp
+                            * rawYield
+                            * sigmaMB
+                            / (2 * accEffSame * deltaPt * deltaY * BR * nEvents)
+                        )
+                        deltaRaa = abs((raaOther - raaOtherOld) / raaOther)
                     frac.append(fracTmp)
 
     if frac:
@@ -189,7 +267,7 @@ def ComputeFractionNb(rawYield, accEffSame, accEffOther, crossSec, deltaPt, delt
 
 
 def GetHistoBinLimits(histo):
-    '''
+    """
     Method to retrieve bin limits of ROOT.TH1
 
     Parameters
@@ -199,14 +277,14 @@ def GetHistoBinLimits(histo):
     Returns
     ----------
     - binLims: numpy array of bin limits
-    '''
+    """
 
-    if np.array(histo.GetXaxis().GetXbins(), 'd').any():  # variable binning
-        binLims = np.array(histo.GetXaxis().GetXbins(), 'd')
+    if np.array(histo.GetXaxis().GetXbins(), "d").any():  # variable binning
+        binLims = np.array(histo.GetXaxis().GetXbins(), "d")
     else:  # constant binning
         nLims = histo.GetNbinsX() + 1
         lowEdge = histo.GetBinLowEdge(1)
         binWidth = histo.GetBinWidth(1)
-        binLims = np.array([lowEdge + iBin * binWidth for iBin in range(nLims)], 'd')
+        binLims = np.array([lowEdge + iBin * binWidth for iBin in range(nLims)], "d")
 
     return binLims
